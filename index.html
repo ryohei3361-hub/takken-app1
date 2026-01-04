@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>宅建ミニアプリ</title>
+
+  <!-- iPhoneで“アプリっぽい”見え方に寄せる -->
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --primary:#111827;
+      --line:#e5e7eb;
+      --ok:#16a34a;
+      --ng:#dc2626;
+      --shadow: 0 18px 60px rgba(2,6,23,.25);
+      --radius: 18px;
+    }
+
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: -apple-system, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 800px at 20% -10%, #334155 0%, transparent 60%),
+                  radial-gradient(1200px 800px at 100% 0%, #1d4ed8 0%, transparent 55%),
+                  linear-gradient(180deg, #0b1020 0%, #0b1020 55%, #f3f4f6 55%, #f3f4f6 100%);
+      min-height:100vh;
+    }
+
+    /* いわゆる“アプリの上部バー” */
+    header{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+      backdrop-filter: blur(12px);
+      background: rgba(11,16,32,.55);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      color:#fff;
+    }
+    .title h1{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.02em;
+    }
+    .pill{
+      font-size:12px;
+      color:#e2e8f0;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      padding:6px 10px;
+      border-radius:999px;
+    }
+
+    main{
+      padding: 14px 16px 32px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .card{
+      margin-top: 10px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-top{
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .meta{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      color:#0f172a;
+      background:#eef2ff;
+      border:1px solid #c7d2fe;
+      padding:5px 10px;
+      border-radius:999px;
+    }
+    .progress{
+      font-size:12px;
+      color: var(--muted);
+    }
+
+    .question{
+      margin: 6px 0 0;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .choices{
+      padding: 14px 16px 6px;
+      display:grid;
+      gap:10px;
+    }
+
+    button.choice{
+      width:100%;
+      text-align:left;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 15px;
+      line-height: 1.35;
+      box-shadow: 0 6px 18px rgba(2,6,23,.06);
+      transition: transform .05s ease, box-shadow .15s ease, border-color .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button.choice:active{
+      transform: translateY(1px);
+      box-shadow: 0 3px 10px rgba(2,6,23,.08);
+    }
+    button.choice:disabled{ opacity:.92; }
+    button.choice.correct{
+      border-color: rgba(22,163,74,.35);
+      background: #ecfdf5;
+      box-shadow: 0 10px 30px rgba(22,163,74,.12);
+    }
+    button.choice.wrong{
+      border-color: rgba(220,38,38,.35);
+      background: #fef2f2;
+      box-shadow: 0 10px 30px rgba(220,38,38,.10);
+    }
+
+    .result{
+      padding: 6px 16px 14px;
+      min-height: 34px;
+      font-size: 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .result.ok{ color: var(--ok); }
+    .result.ng{ color: var(--ng); }
+    .hint{
+      margin-left:auto;
+      font-size:12px;
+      color: var(--muted);
+    }
+
+    .footer{
+      padding: 14px 16px 16px;
+      display:flex;
+      gap:10px;
+      border-top: 1px solid var(--line);
+      background: #fafafa;
+    }
+    .btn{
+      flex:1;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+    }
+    .btn.primary{
+      background: var(--primary);
+      color:#fff;
+      border-color: rgba(17,24,39,.9);
+    }
+    .btn.secondary{
+      background:#fff;
+      color: var(--text);
+    }
+    .btn:disabled{
+      opacity:.55;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <h1>宅建ミニアプリ</h1>
+      <span class="pill" id="scorePill">正解 0</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card" aria-label="問題カード">
+      <div class="card-top">
+        <div class="meta">
+          <span class="tag" id="category">宅建業法</span>
+          <span class="progress" id="progress">1/1</span>
+        </div>
+        <p class="question" id="question"></p>
+      </div>
+
+      <div class="choices" id="choices"></div>
+
+      <div class="result" id="result">
+        <span class="hint">選択肢をタップ</span>
+      </div>
+
+      <div class="footer">
+        <button class="btn secondary" id="resetBtn">最初から</button>
+        <button class="btn primary" id="nextBtn" disabled>次へ</button>
+      </div>
+    </section>
+  </main>
+
+<script>
+  // まずは3問。あとで増やす前提の形
+  const QUESTIONS = [
+    {
+      id: 1,
+      category: "宅建業法",
+      q: "宅地建物取引業者が重要事項説明を行えるのは誰？",
+      choices: ["宅建士でない営業担当","宅地建物取引士","事務員","管理業務主任者"],
+      answer: 1
+    },
+    {
+      id: 2,
+      category: "権利関係",
+      q: "未成年者が法定代理人の同意なくした契約は？（原則）",
+      choices: ["必ず有効","必ず無効","取り消すことができる","取り消すことができない"],
+      answer: 2
+    },
+    {
+      id: 3,
+      category: "法令上の制限",
+      q: "用途地域は何によって定められる？",
+      choices: ["国会の法律で個別に","都市計画で定める","都道府県の条例で自動的に","建築確認で個別に決める"],
+      answer: 1
+    }
+  ];
+
+  let idx = 0;
+  let score = 0;
+  let answered = false;
+
+  const $ = (id) => document.getElementById(id);
+
+  function render() {
+    const cur = QUESTIONS[idx];
+    $("category").textContent = cur.category;
+    $("progress").textContent = `${idx + 1}/${QUESTIONS.length}`;
+    $("scorePill").textContent = `正解 ${score}`;
+    $("question").textContent = cur.q;
+
+    const box = $("choices");
+    box.innerHTML = "";
+    $("result").className = "result";
+    $("result").innerHTML = `<span class="hint">選択肢をタップ</span>`;
+    $("nextBtn").disabled = true;
+    answered = false;
+
+    cur.choices.forEach((text, i) => {
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = `${i + 1}. ${text}`;
+      b.onclick = () => choose(i);
+      box.appendChild(b);
+    });
+  }
+
+  function choose(i){
+    if (answered) return;
+    answered = true;
+
+    const cur = QUESTIONS[idx];
+    const buttons = [...document.querySelectorAll("button.choice")];
+    buttons.forEach(b => b.disabled = true);
+
+    const correct = cur.answer;
+
+    if (i === correct) {
+      score++;
+      $("scorePill").textContent = `正解 ${score}`;
+      $("result").className = "result ok";
+      $("result").textContent = "正解！";
+      buttons[i].classList.add("correct");
+    } else {
+      $("result").className = "result ng";
+      $("result").textContent = `不正解… 正解は ${correct + 1} です`;
+      buttons[i].classList.add("wrong");
+      buttons[correct].classList.add("correct");
+    }
+    $("nextBtn").disabled = false;
+  }
+
+  function next(){
+    if (!answered) return;
+    idx++;
+    if (idx >= QUESTIONS.length){
+      $("category").textContent = "結果";
+      $("progress").textContent = `${QUESTIONS.length}/${QUESTIONS.length}`;
+      $("question").textContent = `終了！ 正解数は ${score}/${QUESTIONS.length} でした。`;
+      $("choices").innerHTML = "";
+      $("result").className = "result";
+      $("result").textContent = "「最初から」でやり直せます。";
+      $("nextBtn").disabled = true;
+      return;
+    }
+    render();
+  }
+
+  function resetAll(){
+    idx = 0;
+    score = 0;
+    render();
+  }
+
+  $("nextBtn").addEventListener("click", next);
+  $("resetBtn").addEventListener("click", resetAll);
+
+  render();
+</script>
+</body>
+</html>
